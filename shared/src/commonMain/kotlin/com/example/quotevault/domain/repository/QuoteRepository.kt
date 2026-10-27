@@ -1,7 +1,10 @@
 package com.example.quotevault.domain.repository
 
 import com.example.quotevault.data.model.Quote
+import kotlinx.coroutines.flow.StateFlow
 
 interface QuoteRepository {
-    suspend fun getQuotes(): List<Quote>
+    val favorites: StateFlow<List<Quote>>
+    suspend fun getQuotes(forceRefresh: Boolean = false): List<Quote>
+    fun toggleFavorite(quote: Quote)
 }

@@ -6,5 +6,6 @@ import com.example.quotevault.domain.repository.QuoteRepository
 class GetQuotesUseCase(
     private val repository: QuoteRepository,
 ) {
-    suspend operator fun invoke(): List<Quote> = repository.getQuotes()
+    suspend operator fun invoke(forceRefresh: Boolean = false): List<Quote> =
+        repository.getQuotes(forceRefresh)
 }
