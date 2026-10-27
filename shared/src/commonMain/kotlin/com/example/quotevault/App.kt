@@ -8,10 +8,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -22,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.quotevault.data.remote.QuoteApi
 import com.example.quotevault.data.remote.createHttpClient
@@ -40,6 +43,24 @@ private sealed interface Destination {
     data object Settings : Destination
     data class Detail(val quoteId: Int) : Destination
 }
+
+private val LatteCream = Color(0xFFFAF6F0)
+private val EspressoBrown = Color(0xFF4E342E)
+private val MochaBrown = Color(0xFF8D6E63)
+private val Terracotta = Color(0xFFB66A50)
+
+private val QuoteVaultColorScheme: ColorScheme = lightColorScheme(
+    primary = Terracotta,
+    onPrimary = Color.White,
+    secondary = MochaBrown,
+    onSecondary = Color.White,
+    background = LatteCream,
+    onBackground = EspressoBrown,
+    surface = LatteCream,
+    onSurface = EspressoBrown,
+    surfaceVariant = Color(0xFFEDE3D8),
+    onSurfaceVariant = MochaBrown,
+)
 
 @Composable
 fun App() {
@@ -73,7 +94,7 @@ fun App() {
         viewModel.events.collect { message = it }
     }
 
-    MaterialTheme {
+    MaterialTheme(colorScheme = QuoteVaultColorScheme) {
         Surface(modifier = Modifier.fillMaxSize()) {
             Column(modifier = Modifier.fillMaxSize()) {
                 Box(modifier = Modifier.weight(1f)) {
