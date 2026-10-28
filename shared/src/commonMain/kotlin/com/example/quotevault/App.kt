@@ -1,188 +1,34 @@
 package com.example.quotevault
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.ColorScheme
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
-import com.example.quotevault.data.remote.QuoteApi
-import com.example.quotevault.data.remote.createHttpClient
-import com.example.quotevault.data.repository.QuoteRepositoryImpl
-import com.example.quotevault.domain.usecase.GetQuotesUseCase
-import com.example.quotevault.domain.usecase.SearchQuotesUseCase
-import com.example.quotevault.domain.usecase.ToggleFavoriteUseCase
-import com.example.quotevault.presentation.BrowseQuotesViewModel
-import com.example.quotevault.presentation.screens.BrowseQuotesScreen
-import com.example.quotevault.presentation.screens.DetailQuoteScreen
-import com.example.quotevault.presentation.screens.FavoritesQuotesScreen
-
-private sealed interface Destination {
-    data object Browse : Destination
-    data object Favorites : Destination
-    data object Settings : Destination
-    data class Detail(val quoteId: Int) : Destination
-}
-
-private val LatteCream = Color(0xFFFAF6F0)
-private val EspressoBrown = Color(0xFF4E342E)
-private val MochaBrown = Color(0xFF8D6E63)
-private val Terracotta = Color(0xFFB66A50)
-
-private val QuoteVaultColorScheme: ColorScheme = lightColorScheme(
-    primary = Terracotta,
-    onPrimary = Color.White,
-    secondary = MochaBrown,
-    onSecondary = Color.White,
-    background = LatteCream,
-    onBackground = EspressoBrown,
-    surface = LatteCream,
-    onSurface = EspressoBrown,
-    surfaceVariant = Color(0xFFEDE3D8),
-    onSurfaceVariant = MochaBrown,
-)
+import com.example.quotevault.di.createAppGraph
+import com.example.quotevault.presentation.navigation.QuoteVaultNavHost
+import com.example.quotevault.presentation.theme.QuoteVaultTheme
 
 @Composable
 fun App() {
     val scope = rememberCoroutineScope()
-    val client = remember { createHttpClient() }
-    DisposableEffect(client) {
-        onDispose { client.close() }
+    val graph = remember(scope) { createAppGraph(scope) }
+    DisposableEffect(graph) {
+        onDispose { graph.close() }
     }
 
-    val repository = remember(client) { QuoteRepositoryImpl(QuoteApi(client)) }
-    val viewModel = remember(scope, repository) {
-        BrowseQuotesViewModel(
-            getQuotes = GetQuotesUseCase(repository),
-            searchQuotes = SearchQuotesUseCase(),
-            toggleFavorite = ToggleFavoriteUseCase(repository),
-            repository = repository,
-            scope = scope,
+    var isDarkTheme by remember { mutableStateOf(graph.settings.isDarkMode()) }
+
+    QuoteVaultTheme(darkTheme = isDarkTheme) {
+        QuoteVaultNavHost(
+            viewModel = graph.viewModel,
+            isDarkTheme = isDarkTheme,
+            onDarkThemeChange = { enabled ->
+                isDarkTheme = enabled
+                graph.settings.setDarkMode(enabled)
+            },
         )
-    }
-
-    val uiState by viewModel.uiState.collectAsState()
-    val favorites by viewModel.favorites.collectAsState()
-    val favoriteIds = remember(favorites) { favorites.mapTo(mutableSetOf()) { it.id } }
-    var destination by remember { mutableStateOf<Destination>(Destination.Browse) }
-    var previousDestination by remember { mutableStateOf<Destination>(Destination.Browse) }
-    var query by remember { mutableStateOf("") }
-    var message by remember { mutableStateOf("") }
-
-    LaunchedEffect(viewModel) {
-        viewModel.loadQuotes()
-        viewModel.events.collect { message = it }
-    }
-
-    MaterialTheme(colorScheme = QuoteVaultColorScheme) {
-        Surface(modifier = Modifier.fillMaxSize()) {
-            Column(modifier = Modifier.fillMaxSize()) {
-                Box(modifier = Modifier.weight(1f)) {
-                    when (val current = destination) {
-                        Destination.Browse -> BrowseQuotesScreen(
-                            state = uiState,
-                            query = query,
-                            favoriteIds = favoriteIds,
-                            message = message,
-                            onSearch = {
-                                query = it
-                                viewModel.onSearch(it)
-                            },
-                            onRefresh = { viewModel.loadQuotes(forceRefresh = true) },
-                            onQuoteClick = { id ->
-                                previousDestination = destination
-                                destination = Destination.Detail(id)
-                            },
-                            onToggleFavorite = viewModel::onToggleFavorite,
-                        )
-
-                        Destination.Favorites -> FavoritesQuotesScreen(
-                            favorites = favorites,
-                            favoriteIds = favoriteIds,
-                            onQuoteClick = { id ->
-                                previousDestination = destination
-                                destination = Destination.Detail(id)
-                            },
-                            onToggleFavorite = viewModel::onToggleFavorite,
-                        )
-
-                        Destination.Settings -> Column(
-                            modifier = Modifier.fillMaxSize().padding(16.dp),
-                        ) {
-                            Text("Settings", style = MaterialTheme.typography.headlineMedium)
-                            Text("Settings are not available yet.", modifier = Modifier.padding(top = 8.dp))
-                        }
-
-                        is Destination.Detail -> DetailQuoteScreen(
-                            quote = viewModel.findQuote(current.quoteId),
-                            isFavorite = current.quoteId in favoriteIds,
-                            onToggleFavorite = viewModel::onToggleFavorite,
-                            onBack = { destination = previousDestination },
-                        )
-                    }
-                }
-
-                if (destination !is Destination.Detail) {
-                    AppNavigationBar(
-                        destination = destination,
-                        onSelect = { destination = it },
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun AppNavigationBar(
-    destination: Destination,
-    onSelect: (Destination) -> Unit,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(8.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-    ) {
-        NavigationButton("Browse", destination is Destination.Browse) {
-            onSelect(Destination.Browse)
-        }
-        NavigationButton("Favorites", destination is Destination.Favorites) {
-            onSelect(Destination.Favorites)
-        }
-        NavigationButton("Settings", destination is Destination.Settings) {
-            onSelect(Destination.Settings)
-        }
-    }
-}
-
-@Composable
-private fun NavigationButton(
-    label: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-) {
-    if (selected) {
-        Button(onClick = onClick) { Text(label) }
-    } else {
-        OutlinedButton(onClick = onClick) { Text(label) }
     }
 }

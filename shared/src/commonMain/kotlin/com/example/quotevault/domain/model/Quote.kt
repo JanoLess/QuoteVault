@@ -1,4 +1,4 @@
-package com.example.quotevault.data.model
+package com.example.quotevault.domain.model
 
 import kotlinx.serialization.Serializable
 

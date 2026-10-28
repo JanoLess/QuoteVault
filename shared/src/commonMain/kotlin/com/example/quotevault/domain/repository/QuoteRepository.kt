@@ -1,6 +1,6 @@
 package com.example.quotevault.domain.repository
 
-import com.example.quotevault.data.model.Quote
+import com.example.quotevault.domain.model.Quote
 import kotlinx.coroutines.flow.StateFlow
 
 interface QuoteRepository {

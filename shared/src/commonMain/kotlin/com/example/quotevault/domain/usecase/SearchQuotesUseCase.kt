@@ -1,6 +1,6 @@
 package com.example.quotevault.domain.usecase
 
-import com.example.quotevault.data.model.Quote
+import com.example.quotevault.domain.model.Quote
 
 class SearchQuotesUseCase {
     operator fun invoke(quotes: List<Quote>, query: String): List<Quote> {
