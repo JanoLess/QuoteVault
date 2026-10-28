@@ -17,7 +17,7 @@ class MockQuoteRepository : QuoteRepository {
         Quote(4, "Start where you are. Use what you have. Do what you can.", "Arthur Ashe"),
     )
 
-    override fun toggleFavorite(quote: Quote) {
+    override suspend fun toggleFavorite(quote: Quote) {
         _favorites.value = if (_favorites.value.any { it.id == quote.id }) {
             _favorites.value.filterNot { it.id == quote.id }
         } else {

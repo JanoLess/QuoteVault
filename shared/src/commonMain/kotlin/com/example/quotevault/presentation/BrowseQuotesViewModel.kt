@@ -63,8 +63,16 @@ class BrowseQuotesViewModel(
     }
 
     fun onToggleFavorite(quote: Quote) {
-        toggleFavorite(quote)
-        _events.tryEmit("Favorites updated.")
+        scope.launch {
+            try {
+                toggleFavorite(quote)
+                _events.emit("Favorites updated.")
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                _events.emit(error.message ?: "Unable to update favorites.")
+            }
+        }
     }
 
     fun findQuote(id: Int): Quote? =

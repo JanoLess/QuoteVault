@@ -213,6 +213,7 @@ private fun QuoteCard(
 fun FavoritesQuotesScreen(
     favorites: List<Quote>,
     favoriteIds: Set<Int>,
+    message: String,
     onQuoteClick: (Int) -> Unit,
     onToggleFavorite: (Quote) -> Unit,
 ) {
@@ -230,6 +231,13 @@ fun FavoritesQuotesScreen(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 20.dp),
         )
+        if (message.isNotEmpty()) {
+            Text(
+                text = message,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(horizontal = 20.dp),
+            )
+        }
         Spacer(modifier = Modifier.height(20.dp))
         if (favorites.isEmpty()) {
             Box(

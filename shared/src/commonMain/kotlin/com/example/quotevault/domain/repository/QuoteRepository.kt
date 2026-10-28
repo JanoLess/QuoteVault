@@ -6,5 +6,5 @@ import kotlinx.coroutines.flow.StateFlow
 interface QuoteRepository {
     val favorites: StateFlow<List<Quote>>
     suspend fun getQuotes(forceRefresh: Boolean = false): List<Quote>
-    fun toggleFavorite(quote: Quote)
+    suspend fun toggleFavorite(quote: Quote)
 }

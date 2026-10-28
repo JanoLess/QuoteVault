@@ -5,6 +5,7 @@ import com.example.quotevault.data.repository.MockQuoteRepository
 import com.example.quotevault.domain.usecase.SearchQuotesUseCase
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlinx.coroutines.test.runTest
 
 class SharedCommonTest {
 
@@ -27,7 +28,7 @@ class SharedCommonTest {
     }
 
     @Test
-    fun favoriteCanBeAddedAndRemoved() {
+    fun favoriteCanBeAddedAndRemoved() = runTest {
         val repository = MockQuoteRepository()
         val quote = Quote(1, "Be kind whenever possible.", "Dalai Lama")
 
